@@ -1,0 +1,22 @@
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual Environment
+env/
+venv/
+
+# Database
+db.sqlite3
+
+# Media files
+media/
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
