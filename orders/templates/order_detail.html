@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Order Details (#{{ order.id }})</h2>
+        <a href="{% url 'custom_dashboard' %}" class="btn btn-outline-dark">Back to Dashboard</a> 
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Customer Info
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Name:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ order.phone }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ order.email }}</p>
+                    <p class="mb-1"><strong>Address:</strong> {{ order.address }}, {{ order.city }}</p>
+                    <p class="mb-0 mt-3 text-danger fw-bold">Status: {{ order.status }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white fw-bold">
+                    Ordered Products
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Product</th>
+                                <th>Quantity</th>
+                                <th>Size</th>
+                                <th>Colour</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order_products %}
+                            <tr>
+                                <td class="text-start">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.product.images.url }}" alt="Product Image" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <p class="mb-0 fw-bold">{{ item.product.product_name }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="align-middle">{{ item.quantity }}</td>
+                                
+                                <td class="align-middle fw-bold text-secondary">
+                                    {% for i in item.variations.all %}
+                                        {% if i.variation_category|lower == 'size' %}
+                                            {{ i.variation_value | capfirst }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                
+                                <td class="align-middle fw-bold text-secondary">
+                                    {% for i in item.variations.all %}
+                                        {% if i.variation_category|lower == 'color' %}
+                                            {{ i.variation_value | capfirst }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="align-middle">৳{{ item.product_price }}</td>
+                                
+                                <td class="align-middle fw-bold text-danger">৳{% widthratio item.product_price 1 item.quantity %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white text-end py-3">
+                    <h5 class="mb-0 fw-bold">Grand Total: <span class="text-danger">৳{{ order.order_total }}</span></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,16 +4,24 @@
 <div class="container mt-5 mb-5" style="max-width: 800px;">
     <div class="card shadow-sm border-0">
         <div class="card-body p-5">
-            <h2 class="fw-bold mb-4 text-center">Add New Product</h2>
+            <h2 class="fw-bold mb-4 text-center">
+                {% if edit_mode %} Edit Product {% else %} Add New Product {% endif %}
+            </h2>
             
-            <form action="{% url 'add_product' %}" method="POST" enctype="multipart/form-data">
+            <form action="" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 {{ form.as_p }}
                 
+                <p>
+                    <label class="fw-bold mb-2">Gallery Images (একাধিক ছবি সিলেক্ট করতে পারবেন):</label>
+                    <input type="file" name="gallery_images" class="form-control mb-3" multiple>
+                </p>
                 <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-dark py-3 fw-bold">Upload Product</button>
-                    <a href="{% url 'home' %}" class="btn btn-outline-secondary py-2">Cancel</a>
+                    <button type="submit" class="btn btn-dark py-3 fw-bold">
+                        {% if edit_mode %} Update Product {% else %} Upload Product {% endif %}
+                    </button>
+                    <a href="{% if edit_mode %}{% url 'manage_products' %}{% else %}{% url 'home' %}{% endif %}" class="btn btn-outline-secondary py-2">Cancel</a>
                 </div>
             </form>
             

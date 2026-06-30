@@ -17,6 +17,82 @@
         .nav-menu { background-color: #000; padding-bottom: 25px; }
         .nav-menu a { color: #ccc; margin: 0 12px; font-size: 12px; }
         .nav-menu a:hover { color: #fff; }
+        /* আপনার বর্তমান স্টাইলের সাথে ফুটার সেকশন যোগ করুন */
+
+.premium-footer {
+    background-color: #212529; /* আপনার ডার্ক থিমের সাথে ম্যাচ করবে */
+    color: #ffffff;
+    padding: 60px 0 30px;
+    margin-top: 50px;
+}
+
+.footer-heading {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* লেখার নিচে ছোট লাল দাগের জন্য */
+.footer-heading::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 2px;
+    background: #dc3545; /* রেড থিম */
+    margin-top: 10px;
+}
+
+.footer-text {
+    font-size: 14px;
+    color: #b0b0b0;
+    line-height: 1.6;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links li a {
+    color: #b0b0b0;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s ease;
+}
+
+/* হোভার করলে আপনার থিমের কালার অনুযায়ী কাজ করবে */
+.footer-links li a:hover {
+    color: #fff;
+    padding-left: 5px;
+}
+
+.social-links a {
+    color: #fff;
+    font-size: 18px;
+    margin-right: 15px;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.social-links a:hover {
+    color: #dc3545; /* হোভার কালার */
+}
+
+.footer-hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 30px 0;
+}
+
+.copyright-text {
+    font-size: 13px;
+    color: #888;
+}
     </style>
 </head>
 
@@ -29,12 +105,16 @@
 <div class="main-header">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
-    <form action="{% url 'search' %}" method="GET" class="d-flex align-items-center">
-        <input type="text" name="keyword" class="form-control form-control-sm me-2" placeholder="Search products..." style="background: transparent; color: white; border: 1px solid #555; width: 200px;">
-        <button type="submit" style="background: none; border: none; color: white;">
-            <i class="bi bi-search fs-5"></i>
+ <form action="{% url 'search' %}" method="GET" class="premium-search-form mx-auto">
+    <div class="input-group">
+        <input type="text" name="keyword" class="form-control premium-search-input" placeholder="Search for products, categories and more..." required>
+        <button class="btn premium-search-btn" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
         </button>
-    </form>
+    </div>
+</form>
 </div>
 
         <div class="text-center">
@@ -66,6 +146,60 @@
 {% block content %}
 
 {% endblock %}
+<footer class="premium-footer mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-heading">GreatKart</h5>
+                <p class="footer-text">We provide the best quality products and fastest delivery. Your satisfaction is our main goal. Stay with us.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-heading">Quick Links</h5>
+                <ul class="footer-links">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    {% comment %} <li><a href="{% url 'store' %}">Store</a></li> {% endcomment %}
+                    <li><a href="{% url 'cart' %}">Cart</a></li>
+                    <li><a href="#">Checkout</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-heading">Support</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Order Tracking</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms & Conditions</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-heading">Contact Us</h5>
+                <p class="footer-text"><i class="fas fa-map-marker-alt me-2"></i>Dhaka BANGLADESH</p>
+                <p class="footer-text"><i class="fas fa-phone-alt me-2"></i> +৮৮০ ১২৩৪ ৫৬৭৮৯০</p>
+                <p class="footer-text"><i class="fas fa-envelope me-2"></i> support@greatkart.com</p>
+                <div class="payment-methods mt-3">
+                    <img src="https://i.ibb.co/v3Bmq8P/payments.png" alt="payments" class="img-fluid" style="max-width: 200px;">
+                </div>
+            </div>
+        </div>
+        
+        <hr class="footer-hr">
+        
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <p class="copyright-text">© 2026 GreatKart. All rights reserved | Developed by <strong>MAHEDI</strong></p>
+            </div>
+        </div>
+    </div>
+</footer>
 
 </body>
 </html>

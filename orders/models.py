@@ -1,5 +1,5 @@
 from django.db import models
-from store.models import Product
+from store.models import Product,Variation
 
 class Order(models.Model):
     STATUS = (
@@ -29,6 +29,7 @@ class OrderProduct(models.Model):
     quantity = models.IntegerField()
     product_price = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
+    variations = models.ManyToManyField(Variation, blank=True)
 
     def __str__(self):
         return self.product.product_name

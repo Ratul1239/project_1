@@ -9,12 +9,6 @@
 </head>
 <body>
 
-    {% comment %} <nav class="navbar navbar-dark bg-dark py-3 mb-5">
-        <div class="container">
-            <a class="navbar-brand text-white mx-auto" href="{% url 'home' %}">ICONIC CLOTH</a>
-        </div>
-    </nav> {% endcomment %}
-
     <div class="container mt-5">
         <h2 class="text-center mb-5 fw-bold">Your Shopping Cart</h2>
 
@@ -43,19 +37,33 @@
                                         <div>
                                             <h6 class="mb-0">{{ cart_item.product.product_name }}</h6>
                                             <small class="text-muted">Unit Price: ৳{{ cart_item.product.price }}</small>
+                                            
+                                            <!-- নতুন: ভ্যারিয়েশন (কালার এবং সাইজ) দেখানোর অংশটুকু এখানে যোগ করা হয়েছে -->
+                                             <p class="text-muted small mb-0 mt-1">
+                                                {% if cart_item.variations.all %}
+                                                    {% for item in cart_item.variations.all %}
+                                                        <strong>{{ item.variation_category | capfirst }} :</strong> {{ item.variation_value | capfirst }} <br>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </p>
+                                            <!-- শেষ -->
+
                                         </div>
                                     </div>
                                 </td>
                                 <td class="align-middle">
                                     <div class="input-group" style="width: 120px;">
-                                        <a href="{% url 'remove_cart' cart_item.product.id %}" class="btn btn-outline-dark btn-sm">-</a>
+                                        <!-- নতুন: মাইনাস বাটনে cart_item.id যোগ করা হয়েছে -->
+                                        <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-outline-dark btn-sm">-</a>
                                         
                                         <input type="text" class="form-control text-center form-control-sm" value="{{ cart_item.quantity }}" readonly>
                                         
+                                        <!-- প্লাস বাটনে কোনো চেঞ্জ করিনি, আগের মতোই আছে -->
                                         <a href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-outline-dark btn-sm">+</a>
                                     </div>
                                     <div class="mt-2 text-center" style="width: 120px;">
-                                        <a href="{% url 'remove_cart_item' cart_item.product.id %}" class="text-danger small" style="text-decoration: none;">Remove Item</a>
+                                        <!-- নতুন: রিমুভ বাটনে cart_item.id যোগ করা হয়েছে -->
+                                        <a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" class="text-danger small" style="text-decoration: none;">Remove Item</a>
                                     </div>
                                     </td>
                                 <td class="align-middle">

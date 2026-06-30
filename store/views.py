@@ -1,8 +1,9 @@
 from django.shortcuts import render,get_object_or_404,redirect
-from store.models import Product,Category,ProductGallery
+from store.models import Product,Category,ProductGallery,Variation
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from store.forms import ProductForm
+
 
 
 # Create your views here.
@@ -70,19 +71,73 @@ def product_detail(request, category_slug, product_slug):
     return render(request, 'product_detail.html', context)
 
 
-# শুধু অ্যাডমিনরাই যেন এই পেজ অ্যাক্সেস করতে পারে
 @login_required(login_url='/admin/login/')
 def add_product(request):
     if not request.user.is_superuser:
         return redirect('home')
 
     if request.method == 'POST':
-        # ছবি আপলোড করার জন্য request.FILES দেওয়াটা বাধ্যতামূলক
         form = ProductForm(request.POST, request.FILES) 
         if form.is_valid():
-            form.save()
-            return redirect('home') # সেভ হওয়ার পর হোমপেজে পাঠিয়ে দেবে
+            # ১. মেইন প্রোডাক্ট সেভ
+            product = form.save()
+            
+            # ২. ভ্যারিয়েশন (কালার ও সাইজ) সেভ
+            colors_str = form.cleaned_data.get('colors')
+            if colors_str:
+                color_list = [c.strip() for c in colors_str.split(',')]
+                for color in color_list:
+                    if color:
+                        Variation.objects.create(product=product, variation_category='color', variation_value=color)
+            
+            sizes_str = form.cleaned_data.get('sizes')
+            if sizes_str:
+                size_list = [s.strip() for s in sizes_str.split(',')]
+                for size in size_list:
+                    if size:
+                        Variation.objects.create(product=product, variation_category='size', variation_value=size)
+
+            images = request.FILES.getlist('gallery_images') 
+            for img in images:
+                ProductGallery.objects.create(product=product, image=img)
+
+            return redirect('home')
     else:
         form = ProductForm()
 
     return render(request, 'add_product.html', {'form': form})
+
+# 1. Shob product-er list dekhano
+@login_required(login_url='/admin/login/')
+def manage_products(request):
+    if not request.user.is_superuser:
+        return redirect('home')
+    products = Product.objects.all().order_by('-id')
+    return render(request, 'manage_products.html', {'products': products})
+
+# 2. Product edit kora
+@login_required(login_url='/admin/login/')
+def edit_product(request, product_id):
+    if not request.user.is_superuser:
+        return redirect('home')
+    
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product) # instance=product deya mane holo puron data gulo form-e thakbe
+        if form.is_valid():
+            form.save()
+            return redirect('manage_products')
+    else:
+        form = ProductForm(instance=product)
+    
+    return render(request, 'add_product.html', {'form': form, 'edit_mode': True})
+
+# 3. Product delete kora
+@login_required(login_url='/admin/login/')
+def delete_product(request, product_id):
+    if not request.user.is_superuser:
+        return redirect('home')
+    
+    product = get_object_or_404(Product, id=product_id)
+    product.delete()
+    return redirect('manage_products')

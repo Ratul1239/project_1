@@ -1,117 +1,166 @@
 {% extends "base.html" %}
 
-{% block title %}
-{{ single_product.product_name }}
-{% endblock %}
-
 {% block content %}
 
 <style>
-    /* আসল রেডিও বাটনগুলো লুকিয়ে ফেলার জন্য */
-    .variation-radio {
-        display: none;
+    /* জুম বক্সের স্টাইল */
+    .zoom-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
     }
-
-    /* সাইজ বাটনের (M, L, XL) ডিজাইন */
-    .size-label {
-        border: 2px solid #dee2e6;
-        padding: 8px 20px;
-        margin-right: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        font-weight: bold;
-        color: #6c757d;
-        transition: 0.3s;
+    #zoom-result {
+        position: absolute;
+        top: 0;
+        left: 105%; 
+        width: 450px;
+        height: 450px;
+        border: 1px solid #e0e0e0;
+        background-repeat: no-repeat;
+        background-color: #fff;
+        z-index: 999;
+        display: none; 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-radius: 8px;
     }
     
-    /* সাইজ বাটনে ক্লিক/সিলেক্ট করলে কেমন দেখাবে */
-    .variation-radio:checked + .size-label {
-        border-color: #212529;
-        background-color: #212529;
-        color: #fff;
-    }
-
-    /* কালার বক্সের ডিজাইন */
-    .color-label {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        border: 2px solid #dee2e6;
-        margin-right: 10px;
+    /* ছোট গ্যালারি ছবির স্টাইল */
+    .gallery-img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
         cursor: pointer;
-        display: inline-block;
-        transition: 0.3s;
+        border: 2px solid transparent;
+        border-radius: 5px;
+    }
+    .gallery-img:hover {
+        border-color: #dc3545;
     }
 
-    /* কালার বক্সে ক্লিক/সিলেক্ট করলে কেমন দেখাবে (চারপাশে বর্ডার ও শ্যাডো আসবে) */
+    /* --- সাইজ এবং কালার সিলেকশনের স্টাইল --- */
+    .variation-radio {
+        display: none; 
+    }
+
+    .color-label {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 12px;
+        cursor: pointer;
+        border: 2px solid #ccc;
+        transition: 0.2s;
+    }
     .variation-radio:checked + .color-label {
         border: 3px solid #000;
-        box-shadow: 0 0 8px rgba(0,0,0,0.4);
         transform: scale(1.1);
+    }
+
+    .size-label {
+        display: inline-block;
+        min-width: 45px;
+        height: 40px;
+        line-height: 38px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #555;
+        background-color: #fff;
+        transition: 0.2s;
+    }
+    .variation-radio:checked + .size-label {
+        background-color: #212529;
+        color: #fff;
+        border-color: #212529;
     }
 </style>
 
 <div class="container mt-5 mb-5">
     <div class="row">
-        <div class="col-md-6">
-            <div class="main-image-container mb-3 text-center">
-                <img src="{{ single_product.images.url }}" id="mainImage" alt="Product Image" class="img-fluid rounded shadow-sm" style="width: 100%; max-height: 500px; object-fit: cover;">
+        
+        <div class="col-md-5">
+            <div class="zoom-wrapper">
+                <img id="main-image" src="{{ single_product.images.url }}" class="img-fluid rounded" style="width: 100%; object-fit: cover;" alt="{{ single_product.product_name }}">
+                <div id="zoom-result"></div>
             </div>
 
-            <div class="d-flex gap-2 overflow-auto justify-content-center mt-3">
-                <img src="{{ single_product.images.url }}" onclick="changeImage(this.src)" class="rounded border" style="width: 70px; height: 70px; cursor: pointer; object-fit: cover;">
-                
+            <div class="d-flex mt-3 gap-2">
+                <img src="{{ single_product.images.url }}" class="gallery-img shadow-sm" onclick="changeMainImage(this.src)">
                 {% for i in product_gallery %}
-                    <img src="{{ i.image.url }}" onclick="changeImage(this.src)" class="rounded border" style="width: 70px; height: 70px; cursor: pointer; object-fit: cover;">
+                    <img src="{{ i.image.url }}" class="gallery-img shadow-sm" onclick="changeMainImage(this.src)">
                 {% endfor %}
             </div>
         </div>
 
-        <div class="col-md-6">
-            <h2 class="fw-bold">{{ single_product.product_name }}</h2>
-            <h4 class="text-danger mt-2">৳{{ single_product.price }}</h4>
+        <div class="col-md-7">
+            <h2 class="fw-bold text-dark">{{ single_product.product_name }}</h2>
+            <h3 class="text-danger mb-3">৳{{ single_product.price }}</h3>
+            <p class="text-muted">{{ single_product.description }}</p>
+            <p class="mb-4"><strong>Stock:</strong> {{ single_product.stock }} available</p>
 
-            <p class="mt-4 text-muted">{{ single_product.description }}</p>
-            <p><strong>Stock:</strong> {{ single_product.stock }} available</p>
-            
             <form action="{% url 'add_cart' single_product.id %}" method="POST">
                 {% csrf_token %}
                 
-                <div class="mt-4 mb-4">
-                    <h6 class="fw-bold mb-3">Select Color</h6>
-                    <div class="d-flex align-items-center mb-4">
-                        {% for i in single_product.variation_set.colors %}
-                            <input type="radio" name="color" value="{{ i.variation_value | lower }}" id="color_{{ i.id }}" class="variation-radio" required>
-                            
-                            <label for="color_{{ i.id }}" class="color-label" style="background-color: {{ i.variation_value | lower }};" title="{{ i.variation_value | capfirst }}"></label>
-                        {% endfor %}
-                    </div>
-                    
-                    <h6 class="fw-bold mb-3">Select Size</h6>
-                    <div class="d-flex align-items-center">
-                        {% for i in single_product.variation_set.sizes %}
-                            <input type="radio" name="size" value="{{ i.variation_value | lower }}" id="size_{{ i.id }}" class="variation-radio" required>
-                            
-                            <label for="size_{{ i.id }}" class="size-label">{{ i.variation_value | upper }}</label>
-                        {% endfor %}
-                    </div>
+                {% if single_product.variation_set.colors %}
+                <div class="mb-4">
+                    <label class="fw-bold mb-3 d-block">Select Color</label>
+                    {% for i in single_product.variation_set.colors %}
+                        <input type="radio" name="color" value="{{ i.variation_value | lower }}" id="color_{{ i.variation_value }}" class="variation-radio">
+                        <label for="color_{{ i.variation_value }}" class="color-label" style="background-color: {{ i.variation_value | lower }};" title="{{ i.variation_value | capfirst }}"></label>
+                    {% endfor %}
                 </div>
+                {% endif %}
+
+                {% if single_product.variation_set.sizes %}
+                <div class="mb-4">
+                    <label class="fw-bold mb-3 d-block">Select Size</label>
+                    {% for i in single_product.variation_set.sizes %}
+                        <input type="radio" name="size" value="{{ i.variation_value | lower }}" id="size_{{ i.variation_value }}" class="variation-radio">
+                        <label for="size_{{ i.variation_value }}" class="size-label">{{ i.variation_value | upper }}</label>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 {% if single_product.stock <= 0 %}
-                    <h5 class="text-danger mt-4 fw-bold">Out of Stock</h5>
+                    <h5 class="text-danger mt-4">Out of Stock</h5>
                 {% else %}
-                    <button type="submit" class="btn btn-dark mt-4 px-5 py-3 w-100 fw-bold">Add to Cart</button>
+                    <button type="submit" class="btn btn-dark w-50 py-3 fw-bold mt-2">Add to Cart</button>
                 {% endif %}
-                
             </form>
-            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    function changeImage(imageSrc) {
-        document.getElementById('mainImage').src = imageSrc;
+    function changeMainImage(imageSrc) {
+        document.getElementById("main-image").src = imageSrc;
     }
-</script>
 
+    document.addEventListener("DOMContentLoaded", function() {
+        const img = document.getElementById("main-image");
+        const result = document.getElementById("zoom-result");
+
+        img.addEventListener("mousemove", function(e) {
+            result.style.display = "block"; 
+            const rect = img.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+
+            result.style.backgroundImage = `url('${img.src}')`;
+            result.style.backgroundSize = `${rect.width * 2.5}px ${rect.height * 2.5}px`; 
+            result.style.backgroundPosition = `${xPercent}% ${yPercent}%`;
+        });
+
+        img.addEventListener("mouseleave", function() {
+            result.style.display = "none"; 
+        });
+    });
+</script>
 {% endblock %}
