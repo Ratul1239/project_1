@@ -131,8 +131,12 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# রেন্ডার সার্ভারের জন্য হোয়াইটজয়েজ স্টোরেজ কনফিগারেশন
-# এটি দিয়ে পরিবর্তন করুন
+# স্ট্যাটিক ফাইলের সঠিক পাথ নির্দেশ করার জন্য এটি অত্যন্ত জরুরি
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# রেন্ডার সার্ভারের জন্য হোয়াইটজয়েজ স্টোরেজ কনফিগারেশন
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
