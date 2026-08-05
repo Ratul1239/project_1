@@ -59,7 +59,7 @@
                                         <input type="text" class="form-control text-center form-control-sm" value="{{ cart_item.quantity }}" readonly>
                                         
                                         <!-- প্লাস বাটনে কোনো চেঞ্জ করিনি, আগের মতোই আছে -->
-                                        <a href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-outline-dark btn-sm">+</a>
+                                        <a href="{% url 'increase_cart_item' cart_item.product.id cart_item.id %}" class="btn btn-outline-dark btn-sm">+</a>
                                     </div>
                                     <div class="mt-2 text-center" style="width: 120px;">
                                         <!-- নতুন: রিমুভ বাটনে cart_item.id যোগ করা হয়েছে -->

@@ -9,22 +9,21 @@
         {% csrf_token %}
         <div class="row">
             
+            <!-- Left Side: Billing Address -->
             <div class="col-md-8">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body p-4">
                         <h4 class="card-title mb-4 fw-bold">Billing Address</h4>
                         
+                        <!-- Name Field -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted">First Name</label>
-                                <input type="text" name="first_name" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted">Last Name</label>
-                                <input type="text" name="last_name" class="form-control" required>
+                            <div class="col-md-12">
+                                <label class="form-label text-muted">Full Name</label>
+                                <input type="text" name="name" class="form-control" placeholder="Enter your full name" required>
                             </div>
                         </div>
 
+                        <!-- Email and Phone Fields -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label text-muted">Email Address</label>
@@ -36,25 +35,21 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Full Address (Street, House No.)</label>
-                            <input type="text" name="address" class="form-control" placeholder="House 12, Road 5, Block C..." required>
-                        </div>
-
+                        <!-- Address Field -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted">City / District</label>
-                                <input type="text" name="city" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted">Order Note (Optional)</label>
-                                <input type="text" name="order_note" class="form-control" placeholder="Any special instructions?">
+                            <div class="col-md-12">
+                                <label class="form-label text-muted">Full Address (Street, House No.)</label>
+                                <input type="text" name="address" class="form-control" placeholder="House 12, Road 5, Block C..." required>
                             </div>
                         </div>
+                        
+                        <!-- City এবং Order Note এখান থেকে পুরোপুরি মুছে ফেলা হয়েছে -->
+
                     </div>
                 </div>
             </div>
 
+            <!-- Right Side: Order Summary -->
             <div class="col-md-4">
                 <div class="card bg-light border-0">
                     <div class="card-body p-4">

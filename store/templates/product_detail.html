@@ -79,6 +79,7 @@
     }
 </style>
 
+<!-- মেইন প্রোডাক্ট সেকশন -->
 <div class="container mt-5 mb-5">
     <div class="row">
         
@@ -132,6 +133,33 @@
                 {% endif %}
             </form>
         </div>
+    </div>
+</div>
+
+<!-- ✅ নতুন যুক্ত করা: Related Products (একই ক্যাটাগরির অন্য প্রোডাক্ট) -->
+<div class="container mb-5">
+    <div class="border-bottom mb-4 pb-2">
+        <h4 class="fw-bold">You May Also Like</h4>
+    </div>
+    
+    <div class="row">
+        {% for product in related_products %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="product-item card border-0 shadow-sm h-100">
+                <img src="{{ product.images.url }}" class="card-img-top rounded-top" style="height: 250px; object-fit: cover;" alt="{{ product.product_name }}">
+                
+                <div class="card-body text-center">
+                    <h6 class="fw-bold mb-2">{{ product.product_name }}</h6>
+                    <p class="mb-2 fw-bold text-danger">৳{{ product.price }}</p>
+                    <a href="{% url 'product_detail' product.category.slug product.slug %}" class="btn btn-outline-dark btn-sm w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">No other products found in this category.</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 

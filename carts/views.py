@@ -123,3 +123,12 @@ def checkout(request):
         'cart_items': cart_items,
     }
     return render(request,'checkout.html', context)
+def increase_cart_item(request, product_id, cart_item_id):
+    try:
+        # নির্দিষ্ট cart_item_id দিয়ে খুঁজবে যাতে ভ্যারিয়েশনের ঝামেলা না হয়
+        cart_item = CartItem.objects.get(product_id=product_id, id=cart_item_id)
+        cart_item.quantity += 1
+        cart_item.save()
+    except CartItem.DoesNotExist:
+        pass
+    return redirect('cart')

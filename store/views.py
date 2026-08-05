@@ -1,25 +1,25 @@
-from django.shortcuts import render,get_object_or_404,redirect
-from store.models import Product,Category,ProductGallery,Variation
+from django.shortcuts import render, get_object_or_404, redirect
+from store.models import Product, Category, ProductGallery, Variation
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from store.forms import ProductForm
 
-
-
 # Create your views here.
+
+# --- হোমপেজ (যেখানেই সব প্রোডাক্ট এবং ক্যাটাগরি ফিল্টার থাকবে) ---
 def home(request, category_slug=None):
     categories = None
     products = None
 
-    # যদি ইউজার কোনো ক্যাটাগরিতে ক্লিক করে থাকে
+    # যদি ইউজার ওপরের মেনু থেকে কোনো ক্যাটাগরিতে ক্লিক করে
     if category_slug != None:
         categories = get_object_or_404(Category, slug=category_slug)
-        products = Product.objects.filter(category=categories, is_available=True)
-    # যদি ক্লিক না করে (অর্থাৎ একদম হোমপেজে থাকে)
+        products = Product.objects.filter(category=categories, is_available=True).order_by('-id')
+    # যদি একদম হোমপেজে থাকে (All Products)
     else:
-        products = Product.objects.filter(is_available=True)
+        products = Product.objects.filter(is_available=True).order_by('-id')
 
-    # মেনুবারে দেখানোর জন্য ডেটাবেস থেকে সব ক্যাটাগরি নিয়ে আসা
+    # মেনুবারে দেখানোর জন্য সব ক্যাটাগরি
     all_categories = Category.objects.all()
 
     context = {
@@ -27,31 +27,18 @@ def home(request, category_slug=None):
         'all_categories': all_categories,
     }
     return render(request, 'home.html', context)
-def product_detail(request, category_slug, product_slug):
-    try:
-        # URL থেকে category_slug এবং product_slug নিয়ে সঠিক প্রোডাক্টটি খুঁজে বের করা
-        single_product = Product.objects.get(category__slug=category_slug, slug=product_slug)
-    except Exception as e:
-        raise e
-
-    context = {
-        'single_product': single_product,
-    }
-    return render(request, 'product_detail.html', context)
-
 
 def search(request):
     products = None
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
-            # প্রোডাক্টের নাম অথবা ডেসক্রিপশনের মধ্যে কিওয়ার্ডটি খুঁজবে
+            # প্রোডাক্টের নাম অথবা ডেসক্রিপশনের মধ্যে কিওয়ার্ডটি খুঁজবে
             products = Product.objects.filter(Q(description__icontains=keyword) | Q(product_name__icontains=keyword))
     
     context = {
         'products': products,
     }
-    # আমরা সার্চ রেজাল্ট দেখানোর জন্য আপনার তৈরি করা home.html কেই ব্যবহার করছি
     return render(request, 'home.html', context)
 
 def product_detail(request, category_slug, product_slug):
@@ -60,16 +47,23 @@ def product_detail(request, category_slug, product_slug):
     except Exception as e:
         raise e
         
-    # --- নতুন কোড: এই প্রোডাক্টের সব ছবি নিয়ে আসা ---
+    # এই প্রোডাক্টের সব ছবি নিয়ে আসা
     product_gallery = ProductGallery.objects.filter(product_id=single_product.id)
-    # -----------------------------------------------
+    
+    # --- নতুন ফিচার: একই ক্যাটাগরির অন্য প্রোডাক্ট নিয়ে আসা (Related Products) ---
+    # বর্তমান প্রোডাক্টের ক্যাটাগরি দিয়ে ফিল্টার করা হয়েছে এবং exclude দিয়ে বর্তমান প্রোডাক্টটি বাদ দেওয়া হয়েছে
+    # [:4] দিয়ে বলা হয়েছে যে নিচে শুধুমাত্র ৪টি প্রোডাক্ট দেখাবে
+    related_products = Product.objects.filter(
+        category=single_product.category, 
+        is_available=True
+    ).exclude(id=single_product.id)[:4]
     
     context = {
         'single_product': single_product,
-        'product_gallery': product_gallery, # গ্যালারিটি context এ দিয়ে দেওয়া হলো
+        'product_gallery': product_gallery, 
+        'related_products': related_products, # টেমপ্লেটে পাঠানোর জন্য অ্যাড করা হলো
     }
     return render(request, 'product_detail.html', context)
-
 
 @login_required(login_url='/admin/login/')
 def add_product(request):
@@ -79,10 +73,8 @@ def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES) 
         if form.is_valid():
-            # ১. মেইন প্রোডাক্ট সেভ
             product = form.save()
             
-            # ২. ভ্যারিয়েশন (কালার ও সাইজ) সেভ
             colors_str = form.cleaned_data.get('colors')
             if colors_str:
                 color_list = [c.strip() for c in colors_str.split(',')]
@@ -107,7 +99,6 @@ def add_product(request):
 
     return render(request, 'add_product.html', {'form': form})
 
-# 1. Shob product-er list dekhano
 @login_required(login_url='/admin/login/')
 def manage_products(request):
     if not request.user.is_superuser:
@@ -115,7 +106,6 @@ def manage_products(request):
     products = Product.objects.all().order_by('-id')
     return render(request, 'manage_products.html', {'products': products})
 
-# 2. Product edit kora
 @login_required(login_url='/admin/login/')
 def edit_product(request, product_id):
     if not request.user.is_superuser:
@@ -123,7 +113,7 @@ def edit_product(request, product_id):
     
     product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product) # instance=product deya mane holo puron data gulo form-e thakbe
+        form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
             return redirect('manage_products')
@@ -132,7 +122,6 @@ def edit_product(request, product_id):
     
     return render(request, 'add_product.html', {'form': form, 'edit_mode': True})
 
-# 3. Product delete kora
 @login_required(login_url='/admin/login/')
 def delete_product(request, product_id):
     if not request.user.is_superuser:

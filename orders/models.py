@@ -9,8 +9,9 @@ class Order(models.Model):
         ('Cancelled', 'Cancelled'),
     )
 
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    # first_name = models.CharField(max_length=50)
+    # last_name = models.CharField(max_length=50)
+    name=models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
     email = models.EmailField(max_length=50)
     address = models.CharField(max_length=200)
