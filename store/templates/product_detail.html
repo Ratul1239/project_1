@@ -106,22 +106,24 @@
             <form action="{% url 'add_cart' single_product.id %}" method="POST">
                 {% csrf_token %}
                 
-                {% if single_product.variation_set.colors %}
+                <!-- কালার সিলেকশন (ভিউ থেকে পাঠানো 'colors' ভেরিয়েবল ব্যবহার করা হয়েছে) -->
+                {% if colors %}
                 <div class="mb-4">
                     <label class="fw-bold mb-3 d-block">Select Color</label>
-                    {% for i in single_product.variation_set.colors %}
-                        <input type="radio" name="color" value="{{ i.variation_value | lower }}" id="color_{{ i.variation_value }}" class="variation-radio">
-                        <label for="color_{{ i.variation_value }}" class="color-label" style="background-color: {{ i.variation_value | lower }};" title="{{ i.variation_value | capfirst }}"></label>
+                    {% for i in colors %}
+                        <input type="radio" name="color" value="{{ i.variation_value | lower }}" id="color_{{ i.id }}" class="variation-radio" required>
+                        <label for="color_{{ i.id }}" class="color-label" style="background-color: {{ i.variation_value | lower }};" title="{{ i.variation_value | capfirst }}"></label>
                     {% endfor %}
                 </div>
                 {% endif %}
 
-                {% if single_product.variation_set.sizes %}
+                <!-- সাইজ সিলেকশন (ভিউ থেকে পাঠানো 'sizes' ভেরিয়েবল ব্যবহার করা হয়েছে) -->
+                {% if sizes %}
                 <div class="mb-4">
                     <label class="fw-bold mb-3 d-block">Select Size</label>
-                    {% for i in single_product.variation_set.sizes %}
-                        <input type="radio" name="size" value="{{ i.variation_value | lower }}" id="size_{{ i.variation_value }}" class="variation-radio">
-                        <label for="size_{{ i.variation_value }}" class="size-label">{{ i.variation_value | upper }}</label>
+                    {% for i in sizes %}
+                        <input type="radio" name="size" value="{{ i.variation_value | lower }}" id="size_{{ i.id }}" class="variation-radio" required>
+                        <label for="size_{{ i.id }}" class="size-label">{{ i.variation_value | upper }}</label>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -136,7 +138,7 @@
     </div>
 </div>
 
-<!-- ✅ নতুন যুক্ত করা: Related Products (একই ক্যাটাগরির অন্য প্রোডাক্ট) -->
+<!-- ✅ Related Products (একই ক্যাটাগরির অন্য প্রোডাক্ট) -->
 <div class="container mb-5">
     <div class="border-bottom mb-4 pb-2">
         <h4 class="fw-bold">You May Also Like</h4>

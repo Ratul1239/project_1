@@ -6,20 +6,19 @@ from store.forms import ProductForm
 
 # Create your views here.
 
-# --- হোমপেজ (যেখানেই সব প্রোডাক্ট এবং ক্যাটাগরি ফিল্টার থাকবে) ---
+# --- হোমপেজ (সিলেক্ট রিলেটেড দিয়ে অপ্টিমাইজ করা হলো যাতে ডুপ্লিকেট কুয়েরি না হয়) ---
 def home(request, category_slug=None):
     categories = None
     products = None
 
-    # যদি ইউজার ওপরের মেনু থেকে কোনো ক্যাটাগরিতে ক্লিক করে
     if category_slug != None:
         categories = get_object_or_404(Category, slug=category_slug)
-        products = Product.objects.filter(category=categories, is_available=True).order_by('-id')
-    # যদি একদম হোমপেজে থাকে (All Products)
+        # .select_related('category') যুক্ত করা হয়েছে
+        products = Product.objects.filter(category=categories, is_available=True).select_related('category').order_by('-id')
     else:
-        products = Product.objects.filter(is_available=True).order_by('-id')
+        # .select_related('category') যুক্ত করা হয়েছে
+        products = Product.objects.filter(is_available=True).select_related('category').order_by('-id')
 
-    # মেনুবারে দেখানোর জন্য সব ক্যাটাগরি
     all_categories = Category.objects.all()
 
     context = {
@@ -33,8 +32,7 @@ def search(request):
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
-            # প্রোডাক্টের নাম অথবা ডেসক্রিপশনের মধ্যে কিওয়ার্ডটি খুঁজবে
-            products = Product.objects.filter(Q(description__icontains=keyword) | Q(product_name__icontains=keyword))
+            products = Product.objects.filter(Q(description__icontains=keyword) | Q(product_name__icontains=keyword)).select_related('category')
     
     context = {
         'products': products,
@@ -43,25 +41,31 @@ def search(request):
 
 def product_detail(request, category_slug, product_slug):
     try:
-        single_product = Product.objects.get(category__slug=category_slug, slug=product_slug)
+        # select_related দিয়ে ক্যাটাগরি এবং prefetch_related দিয়ে গ্যালারি ও ভেরিয়েশন একসাথে নিয়ে আসা হচ্ছে
+        single_product = Product.objects.select_related('category').prefetch_related(
+            'productgallery_set', 
+            'variation_set'
+        ).get(category__slug=category_slug, slug=product_slug)
     except Exception as e:
         raise e
         
-    # এই প্রোডাক্টের সব ছবি নিয়ে আসা
-    product_gallery = ProductGallery.objects.filter(product_id=single_product.id)
+    # যেহেতু prefetch_related ব্যবহার করা হয়েছে, তাই পাইথনের মেমোরি থেকেই এগুলো ফিল্টার হয়ে যাবে (নতুন করে ডাটাবেজে হিট করবে না)
+    colors = [v for v in single_product.variation_set.all() if v.variation_category == 'color' and v.is_active]
+    sizes = [v for v in single_product.variation_set.all() if v.variation_category == 'size' and v.is_active]
     
-    # --- নতুন ফিচার: একই ক্যাটাগরির অন্য প্রোডাক্ট নিয়ে আসা (Related Products) ---
-    # বর্তমান প্রোডাক্টের ক্যাটাগরি দিয়ে ফিল্টার করা হয়েছে এবং exclude দিয়ে বর্তমান প্রোডাক্টটি বাদ দেওয়া হয়েছে
-    # [:4] দিয়ে বলা হয়েছে যে নিচে শুধুমাত্র ৪টি প্রোডাক্ট দেখাবে
+    product_gallery = single_product.productgallery_set.all()
+    
     related_products = Product.objects.filter(
         category=single_product.category, 
         is_available=True
-    ).exclude(id=single_product.id)[:4]
+    ).select_related('category').exclude(id=single_product.id)[:4]
     
     context = {
         'single_product': single_product,
         'product_gallery': product_gallery, 
-        'related_products': related_products, # টেমপ্লেটে পাঠানোর জন্য অ্যাড করা হলো
+        'colors': colors,
+        'sizes': sizes,
+        'related_products': related_products,
     }
     return render(request, 'product_detail.html', context)
 
@@ -103,7 +107,7 @@ def add_product(request):
 def manage_products(request):
     if not request.user.is_superuser:
         return redirect('home')
-    products = Product.objects.all().order_by('-id')
+    products = Product.objects.all().select_related('category').order_by('-id')
     return render(request, 'manage_products.html', {'products': products})
 
 @login_required(login_url='/admin/login/')

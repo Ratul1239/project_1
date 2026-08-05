@@ -64,13 +64,14 @@ def add_cart(request, product_id):
 
     return redirect('cart')
 
-# ৩. কার্ট পেজ এবং মোট দাম দেখানোর ফাংশন
+# ৩. কার্ট পেজ এবং মোট দাম দেখানোর ফাংশন (অপ্টিমাইজড)
 def cart(request):
     total = 0
     cart_items = None
     try:
         cart = Cart.objects.get(cart_id=_cart_id(request))
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        # select_related এবং prefetch_related যুক্ত করা হয়েছে যাতে ডুপ্লিকেট কুয়েরি না হয়
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True).select_related('product').prefetch_related('variations')
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
     except ObjectDoesNotExist:
@@ -79,15 +80,13 @@ def cart(request):
         'total': total,
         'cart_items': cart_items,
     }
-    return render(request,'cart.html', context)
+    return render(request, 'cart.html', context)
 
 # ৪. কার্ট থেকে প্রোডাক্টের পরিমাণ কমানো (-)
-# ৪. কার্ট থেকে প্রোডাক্টের পরিমাণ কমানো (-)
-def remove_cart(request, product_id, cart_item_id): # <-- এখানে cart_item_id যোগ করা হয়েছে
+def remove_cart(request, product_id, cart_item_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
     product = get_object_or_404(Product, id=product_id)
     try:
-        # নির্দিষ্ট cart_item_id দিয়ে খুঁজবে
         cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
@@ -99,21 +98,21 @@ def remove_cart(request, product_id, cart_item_id): # <-- এখানে cart_i
     return redirect('cart')
 
 # ৫. কার্ট থেকে প্রোডাক্ট একদম মুছে ফেলা (Remove)
-def remove_cart_item(request, product_id, cart_item_id): # <-- এখানে cart_item_id যোগ করা হয়েছে
+def remove_cart_item(request, product_id, cart_item_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
     product = get_object_or_404(Product, id=product_id)
-    # নির্দিষ্ট cart_item_id দিয়ে খুঁজবে
     cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
     cart_item.delete()
     return redirect('cart')
 
-# ৬. চেকআউট পেজের ফাংশন
+# ৬. চেকআউট পেজের ফাংশন (অপ্টিমাইজড)
 def checkout(request):
     total = 0
     cart_items = None
     try:
         cart = Cart.objects.get(cart_id=_cart_id(request))
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        # select_related এবং prefetch_related যুক্ত করা হয়েছে
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True).select_related('product').prefetch_related('variations')
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
     except ObjectDoesNotExist:
@@ -122,10 +121,11 @@ def checkout(request):
         'total': total,
         'cart_items': cart_items,
     }
-    return render(request,'checkout.html', context)
+    return render(request, 'checkout.html', context)
+
+# ৭. কার্টে প্রোডাক্টের পরিমাণ বাড়ানো (+)
 def increase_cart_item(request, product_id, cart_item_id):
     try:
-        # নির্দিষ্ট cart_item_id দিয়ে খুঁজবে যাতে ভ্যারিয়েশনের ঝামেলা না হয়
         cart_item = CartItem.objects.get(product_id=product_id, id=cart_item_id)
         cart_item.quantity += 1
         cart_item.save()
