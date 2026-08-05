@@ -132,7 +132,8 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # রেন্ডার সার্ভারের জন্য হোয়াইটজয়েজ স্টোরেজ কনফিগারেশন
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# এটি দিয়ে পরিবর্তন করুন
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
