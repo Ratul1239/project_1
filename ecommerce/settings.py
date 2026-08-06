@@ -152,19 +152,19 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# Cloudinary
+# Cloudinary Config
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'zw0n56ek',
+    'API_KEY': '496482762672349',
+    'API_SECRET': '7kLNLwENzFew0gFedReemGOwj9g',
+}
 
 cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    cloud_name='zw0n56ek',
+    api_key='496482762672349',
+    api_secret='7kLNLwENzFew0gFedReemGOwj9g',
 )
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
 
 STORAGES = {
     "default": {

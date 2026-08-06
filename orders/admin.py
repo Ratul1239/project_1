@@ -1,3 +1,12 @@
 from django.contrib import admin
+from .models import OrderProduct
 
-# Register your models here.
+
+@admin.register(OrderProduct)
+class OrderProductAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "order",
+        "product",
+        "quantity",
+    ]

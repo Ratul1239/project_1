@@ -5,7 +5,6 @@ from orders.models import Order,OrderProduct
 admin.site.register(Category)
 admin.site.register(Variation)
 admin.site.register(Order)
-admin.site.register(OrderProduct)
 
 # ১. গ্যালারির জন্য ইনলাইন তৈরি
 class ProductGalleryInline(admin.TabularInline):
