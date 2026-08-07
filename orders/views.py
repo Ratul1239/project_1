@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Sum
 from datetime import timedelta
+from django.db.models.functions import TruncDate
 
 def place_order(request):
     cart = Cart.objects.get(cart_id=_cart_id(request))
@@ -66,53 +67,77 @@ def place_order(request):
 def order_complete(request):
     return render(request, 'order_complete.html')
 
-@login_required(login_url='/admin/login/') 
+@login_required(login_url='/admin/login/')
 def custom_dashboard(request):
-    if not request.user.is_superuser:
-        return redirect('home')
-    
-    today = timezone.now().date()
-    
-    # --- ১. কার্ডের জন্য অর্ডার ও সেলসের হিসাব ---
-    total_orders = Order.objects.count()
-    today_orders = Order.objects.filter(created_at__date=today).count()
-    
-    # Sum ব্যবহার করে টোটাল সেলস বের করা
-    total_sales = Order.objects.aggregate(Sum('order_total'))['order_total__sum'] or 0
-    today_sales = Order.objects.filter(created_at__date=today).aggregate(Sum('order_total'))['order_total__sum'] or 0
-    
-    # --- ২. ফিল্টার করার লজিক ---
-    filter_by = request.GET.get('filter')
-    
-    if filter_by == 'today':
-        orders = Order.objects.filter(created_at__date=today).order_by('-created_at')
-    elif filter_by == 'all':
-        orders = Order.objects.all().order_by('-created_at')
-    else:
-        # ডিফল্টভাবে কোনো অর্ডার দেখাবে না (লিস্ট হাইড থাকবে)
-        orders = [] 
-        
-    # --- ৩. গ্রাফের জন্য গত ৭ দিনের ডেটা তৈরি ---
-    labels = []
-    sales_data = []
-    
-    for i in range(6, -1, -1):
-        day = today - timedelta(days=i)
-        labels.append(day.strftime("%d %b")) # যেমন: 05 Aug
-        daily_total = Order.objects.filter(created_at__date=day).aggregate(Sum('order_total'))['order_total__sum'] or 0
-        sales_data.append(float(daily_total))
-    
-    context = {
-        'orders': orders,
-        'total_orders': total_orders,
-        'today_orders': today_orders,
-        'total_sales': total_sales,
-        'today_sales': today_sales,
-        'labels': labels,        
-        'sales_data': sales_data, 
-        'filter_by': filter_by,   
-    }
-    return render(request, 'dashboard.html', context)
+  if not request.user.is_superuser:
+    return redirect('home')
+
+  today = timezone.now().date()
+
+  # --- ১. কার্ডের জন্য অর্ডার ও সেলসের হিসাব ---
+  total_orders = Order.objects.count()
+  today_orders = Order.objects.filter(created_at__date=today).count()
+
+  # Sum ব্যবহার করে টোটাল সেলস বের করা
+  total_sales = (
+      Order.objects.aggregate(Sum('order_total'))['order_total__sum'] or 0
+  )
+  today_sales = (
+      Order.objects.filter(created_at__date=today).aggregate(
+          Sum('order_total')
+      )['order_total__sum']
+      or 0
+  )
+
+  # --- ২. ফিল্টার করার লজিক ---
+  filter_by = request.GET.get('filter')
+
+  if filter_by == 'today':
+    orders = Order.objects.filter(created_at__date=today).order_by('-created_at')
+  elif filter_by == 'all':
+    orders = Order.objects.all().order_by('-created_at')
+  else:
+    # ডিফল্টভাবে কোনো অর্ডার দেখাবে না (লিস্ট হাইড থাকবে)
+    orders = []
+
+  # --- ৩. গ্রাফের জন্য গত ৭ দিনের ডেটা তৈরি (অপ্টিমাইজড কুয়েরি) ---
+  start_date = today - timedelta(days=6)
+
+  # একসাথে গত ৭ দিনের ডেটা ডাটাবেজ থেকে নিয়ে আসা (N+1 কুয়েরি সমস্যা দূর করতে)
+  orders_in_range = (
+      Order.objects.filter(
+          created_at__date__gte=start_date, created_at__date__lte=today
+      )
+      .annotate(date=TruncDate('created_at'))
+      .values('date')
+      .annotate(total=Sum('order_total'))
+  )
+
+  # ডেট অনুযায়ী ডিকশনারিতে রূপান্তর করা
+  sales_dict = {item['date']: item['total'] for item in orders_in_range}
+
+  labels = []
+  sales_data = []
+
+  for i in range(6, -1, -1):
+    day = today - timedelta(days=i)
+    labels.append(day.strftime('%d %b'))  # যেমন: 05 Aug
+
+    # ডিকশনারি থেকে ওই দিনের সেলস নেওয়া, না থাকলে 0 হবে
+    daily_total = sales_dict.get(day, 0)
+    sales_data.append(float(daily_total))
+
+  context = {
+      'orders': orders,
+      'total_orders': total_orders,
+      'today_orders': today_orders,
+      'total_sales': total_sales,
+      'today_sales': today_sales,
+      'labels': labels,
+      'sales_data': sales_data,
+      'filter_by': filter_by,
+  }
+  return render(request, 'dashboard.html', context)
 
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
